@@ -1,0 +1,10 @@
+[package]
+name = "aqueduct-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+aqueduct-protocol = { path = "../aqueduct-protocol" }
+arc-swap = "1"
+serde_json = "1"

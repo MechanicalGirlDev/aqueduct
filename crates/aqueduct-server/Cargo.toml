@@ -1,0 +1,17 @@
+[package]
+name = "aqueduct-server"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+aqueduct-core = { path = "../aqueduct-core" }
+aqueduct-protocol = { path = "../aqueduct-protocol" }
+async-trait = "0.1"
+serde_json = "1"
+tokio = { version = "1", features = ["rt", "sync", "macros", "time"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+tracing = "0.1"
+
+[dev-dependencies]
+aqueduct-nodes = { path = "../aqueduct-nodes" }
