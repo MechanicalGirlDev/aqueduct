@@ -5,7 +5,9 @@ members = [
     "crates/aqueduct-nodes",
     "crates/aqueduct-server",
     "crates/aqueduct-server-ws",
+    "crates/aqueduct-server-tauri",
 ]
+exclude = ["frontend/src-tauri"]
 resolver = "2"
 
 [workspace.package]

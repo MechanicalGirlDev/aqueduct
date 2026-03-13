@@ -171,6 +171,47 @@ async fn run_session_loop(
     Ok(())
 }
 
+/// 1 tick 分の実行結果。
+pub struct TickResult {
+    /// 各セッション向けのピン値差分。
+    pub pin_diffs: Vec<SessionPinDiff>,
+    /// 現在のグラフリビジョン。
+    pub graph_rev: u64,
+}
+
+/// 1 tick を実行し、各セッションの pin diff を収集して返します。
+///
+/// ランタイム停止中は `Ok(None)` を返します。
+/// tick 実行失敗時はランタイムをエラー状態にして `Ok(None)` を返します。
+///
+/// # Errors
+/// pin store の読み取りやセッション管理の内部ロック失敗時にエラーを返します。
+pub fn run_tick_and_collect_diffs(
+    tick_driver: &mut TickDriver,
+    dispatcher: &MessageDispatcher,
+) -> AqueductResult<Option<TickResult>> {
+    if !dispatcher.is_runtime_running() {
+        return Ok(None);
+    }
+
+    if let Err(err) = tick_driver.run_tick() {
+        dispatcher.mark_runtime_error();
+        error!("tick 実行に失敗しました: {}", err);
+        return Ok(None);
+    }
+
+    let pin_store = dispatcher
+        .live_graph()
+        .with_graph(|graph| Ok(graph.pin_store_snapshot()))?;
+    let pin_diffs = dispatcher.session_manager().collect_pin_diffs(&pin_store)?;
+    let graph_rev = dispatcher.current_graph_rev()?;
+
+    Ok(Some(TickResult {
+        pin_diffs,
+        graph_rev,
+    }))
+}
+
 async fn run_tick_loop(
     dispatcher: Arc<MessageDispatcher>,
     session_senders: SessionSenderMap,
@@ -183,24 +224,10 @@ async fn run_tick_loop(
         tokio::select! {
             () = shutdown.cancelled() => break,
             _ = interval.tick() => {
-                if !dispatcher.is_runtime_running() {
-                    continue;
-                }
-
-                if let Err(error) = tick_driver.run_tick() {
-                    dispatcher.mark_runtime_error();
-                    error!("tick 実行に失敗しました: {}", error);
-                    continue;
-                }
-
-                let pin_store = dispatcher
-                    .live_graph()
-                    .with_graph(|graph| Ok(graph.pin_store_snapshot()))?;
-                let pin_diffs = dispatcher.session_manager().collect_pin_diffs(&pin_store)?;
-                let graph_rev = dispatcher.current_graph_rev()?;
-
-                for pin_diff in pin_diffs {
-                    send_pin_diff(&session_senders, pin_diff, graph_rev)?;
+                if let Some(result) = run_tick_and_collect_diffs(&mut tick_driver, &dispatcher)? {
+                    for pin_diff in result.pin_diffs {
+                        send_pin_diff(&session_senders, pin_diff, result.graph_rev)?;
+                    }
                 }
             }
         }

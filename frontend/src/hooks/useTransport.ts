@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
 import type { Transport } from '../protocol/transport';
+import { TauriTransport } from '../protocol/tauri';
 import { WebSocketTransport } from '../protocol/websocket';
 import { useGraphStore, nextRequestId, setGraphTransport } from '../stores/graphStore';
 import { usePinStore } from '../stores/pinStore';
 import type { ServerEnvelope } from '../types';
 
-const sharedTransport: Transport = new WebSocketTransport('ws://localhost:9400/ws');
+function isTauri(): boolean {
+  return '__TAURI_INTERNALS__' in window;
+}
+
+const sharedTransport: Transport = isTauri()
+  ? new TauriTransport()
+  : new WebSocketTransport('ws://localhost:9400/ws');
 let initialized = false;
 let connectInFlight: Promise<void> | null = null;
 
@@ -81,7 +88,7 @@ export function useTransport(): { transport: Transport; connected: boolean } {
       sharedTransport.onMessage(routeServerMessage);
 
       ensureConnected().catch((error) => {
-        console.warn('websocket unavailable, running in local-only mode', error);
+        console.warn('server unavailable, running in local-only mode', error);
       });
     }
 

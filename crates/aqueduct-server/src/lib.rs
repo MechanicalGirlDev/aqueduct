@@ -13,6 +13,6 @@ pub mod session;
 pub mod transport;
 
 pub use dispatcher::MessageDispatcher;
-pub use server_loop::run_server;
+pub use server_loop::{run_server, run_tick_and_collect_diffs, TickResult};
 pub use session::{SessionManager, SessionPinDiff, SessionState};
 pub use transport::{TransportServer, TransportSession};

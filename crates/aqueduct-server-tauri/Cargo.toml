@@ -1,0 +1,19 @@
+[package]
+name = "aqueduct-server-tauri"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+aqueduct-core = { path = "../aqueduct-core" }
+aqueduct-nodes = { path = "../aqueduct-nodes" }
+aqueduct-protocol = { path = "../aqueduct-protocol" }
+aqueduct-server = { path = "../aqueduct-server" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = "2"
+tokio = { version = "1", features = ["rt", "sync", "time"] }
+tokio-util = "0.7"
+tracing = "0.1"
+uuid = { version = "1", features = ["v4"] }
