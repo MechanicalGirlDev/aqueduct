@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import type { Transport } from '../protocol/transport';
 import { nextRequestId, useGraphStore } from '../stores/graphStore';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
+import { ModeToggle } from '@/components/mode-toggle';
 
 interface RuntimeControlsProps {
   transport: Transport;
   connected: boolean;
 }
-
-const stateColor: Record<'running' | 'stopped' | 'error', string> = {
-  running: '#22c55e',
-  stopped: '#94a3b8',
-  error: '#ef4444',
-};
 
 export function RuntimeControls({ transport, connected }: RuntimeControlsProps) {
   const runtimeState = useGraphStore((state) => state.runtimeState);
@@ -34,69 +32,52 @@ export function RuntimeControls({ transport, connected }: RuntimeControlsProps) 
   };
 
   return (
-    <div
-      style={{
-        height: 56,
-        padding: '10px 14px',
-        borderBottom: '1px solid #1f2937',
-        background: '#0b1020',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
-      }}
-    >
-      <button
-        type="button"
-        onClick={sendRuntimeStart}
-        style={{
-          background: '#14532d',
-          border: '1px solid #16a34a',
-          color: '#dcfce7',
-          borderRadius: 6,
-          padding: '6px 10px',
-          cursor: 'pointer',
-        }}
-      >
+    <div className="flex h-14 items-center gap-3 border-b border-border bg-card px-3.5">
+      <Button size="sm" onClick={sendRuntimeStart}>
         Start
-      </button>
-      <button
-        type="button"
-        onClick={sendRuntimeStop}
-        style={{
-          background: '#3f1d1d',
-          border: '1px solid #ef4444',
-          color: '#fee2e2',
-          borderRadius: 6,
-          padding: '6px 10px',
-          cursor: 'pointer',
-        }}
-      >
+      </Button>
+      <Button variant="destructive" size="sm" onClick={sendRuntimeStop}>
         Stop
-      </button>
+      </Button>
 
-      <label style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 220, color: '#cbd5e1' }}>
-        <span style={{ fontSize: 12 }}>TickRate</span>
-        <input
-          type="range"
+      <div className="flex items-center gap-2 min-w-[220px]">
+        <span className="text-xs text-muted-foreground">TickRate</span>
+        <Slider
           min={1}
           max={120}
-          value={tickRate}
-          onChange={(event) => {
-            const hz = Number(event.target.value);
-            setTickRate(hz);
-            sendTickRate(hz);
+          step={1}
+          value={[tickRate]}
+          onValueChange={([hz]) => {
+            if (hz !== undefined) {
+              setTickRate(hz);
+              sendTickRate(hz);
+            }
           }}
-          style={{ flex: 1 }}
+          className="flex-1"
         />
-        <span style={{ fontSize: 12, width: 44 }}>{tickRate} Hz</span>
-      </label>
+        <span className="text-xs text-muted-foreground w-11 tabular-nums">{tickRate} Hz</span>
+      </div>
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, fontSize: 12 }}>
-        <span style={{ color: connected ? '#22c55e' : '#f59e0b' }}>
+      <div className="ml-auto flex items-center gap-2">
+        <Badge variant={connected ? 'default' : 'secondary'}>
           {connected ? 'Connected' : 'Local mode'}
+        </Badge>
+        <Badge
+          variant="outline"
+          className={
+            runtimeState === 'running'
+              ? 'border-green-500 text-green-600 dark:text-green-400'
+              : runtimeState === 'error'
+                ? 'border-red-500 text-red-600 dark:text-red-400'
+                : ''
+          }
+        >
+          Runtime: {runtimeState}
+        </Badge>
+        <span className="text-xs text-muted-foreground tabular-nums">
+          Rev {graphRev}
         </span>
-        <span style={{ color: stateColor[runtimeState] }}>Runtime: {runtimeState}</span>
-        <span style={{ color: '#94a3b8' }}>GraphRev: {graphRev}</span>
+        <ModeToggle />
       </div>
     </div>
   );

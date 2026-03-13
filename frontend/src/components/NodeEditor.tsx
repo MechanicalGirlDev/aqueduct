@@ -10,6 +10,7 @@ import {
 } from '@xyflow/react';
 import { CustomNode } from './CustomNode';
 import { useGraphStore, type AqueductNode } from '../stores/graphStore';
+import { getCategoryColor } from '@/lib/category-colors';
 
 const PALETTE_MIME = 'application/aqueduct-node-type';
 
@@ -17,23 +18,7 @@ const nodeTypes: NodeTypes = {
   custom: CustomNode,
 };
 
-const miniMapColor = (node: AqueductNode): string => {
-  const category = node.data.category;
-  switch (category) {
-    case 'math':
-      return '#2b6cb0';
-    case 'string':
-      return '#2f855a';
-    case 'logic':
-      return '#b7791f';
-    case 'time':
-      return '#6b46c1';
-    case 'convert':
-      return '#c05621';
-    default:
-      return '#4a5568';
-  }
-};
+const miniMapColor = (node: AqueductNode): string => getCategoryColor(node.data.category);
 
 function NodeEditorCanvas() {
   const nodes = useGraphStore((state) => state.nodes);
@@ -81,23 +66,18 @@ function NodeEditorCanvas() {
       }}
       fitView
       proOptions={{ hideAttribution: true }}
-      style={{ background: 'linear-gradient(180deg, #0f172a 0%, #111827 100%)' }}
+      className="bg-background"
     >
-      <MiniMap
-        nodeColor={miniMapColor}
-        pannable
-        zoomable
-        style={{ backgroundColor: '#0b1020', border: '1px solid #1f2937' }}
-      />
-      <Controls style={{ background: '#0b1020', border: '1px solid #1f2937' }} />
-      <Background gap={20} size={1} color="#1f2937" />
+      <MiniMap nodeColor={miniMapColor} pannable zoomable />
+      <Controls />
+      <Background gap={20} size={1} />
     </ReactFlow>
   );
 }
 
 export function NodeEditor() {
   return (
-    <div style={{ height: '100%', width: '100%' }}>
+    <div className="h-full w-full">
       <ReactFlowProvider>
         <NodeEditorCanvas />
       </ReactFlowProvider>

@@ -1,12 +1,13 @@
 import { useMemo, type DragEvent } from 'react';
-import { useGraphStore } from '../stores/graphStore';
+import { useGraphStore, type NodeCategory } from '../stores/graphStore';
 import type { NodeDef } from '../types';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+import { categoryText, categoryBorderLeft } from '@/lib/category-colors';
 
 const PALETTE_MIME = 'application/aqueduct-node-type';
 
-type PaletteCategory = 'math' | 'string' | 'logic' | 'time' | 'convert' | 'other';
-
-const categoryLabel: Record<PaletteCategory, string> = {
+const categoryLabel: Record<NodeCategory, string> = {
   math: 'Math',
   string: 'String',
   logic: 'Logic',
@@ -15,16 +16,7 @@ const categoryLabel: Record<PaletteCategory, string> = {
   other: 'Other',
 };
 
-const categoryColor: Record<PaletteCategory, string> = {
-  math: '#2b6cb0',
-  string: '#2f855a',
-  logic: '#b7791f',
-  time: '#6b46c1',
-  convert: '#c05621',
-  other: '#4a5568',
-};
-
-const getCategory = (typeName: string): PaletteCategory => {
+const getCategory = (typeName: string): NodeCategory => {
   const head = typeName.split('.')[0] ?? 'other';
   if (head === 'math' || head === 'string' || head === 'logic' || head === 'time' || head === 'convert') {
     return head;
@@ -32,7 +24,7 @@ const getCategory = (typeName: string): PaletteCategory => {
   return 'other';
 };
 
-const getInitialGroups = (): Record<PaletteCategory, NodeDef[]> => ({
+const getInitialGroups = (): Record<NodeCategory, NodeDef[]> => ({
   math: [],
   string: [],
   logic: [],
@@ -58,54 +50,42 @@ export function Palette() {
   };
 
   return (
-    <aside style={{ padding: 12, overflowY: 'auto', height: '100%', background: '#121826' }}>
-      <div style={{ marginBottom: 10, fontSize: 12, color: '#9ca3af' }}>Node Types</div>
-      {(['math', 'string', 'logic', 'time', 'convert', 'other'] as const).map((category) => {
-        const defs = grouped[category];
-        if (defs.length === 0) {
-          return null;
-        }
+    <ScrollArea className="h-full bg-sidebar">
+      <div className="p-3">
+        <div className="mb-2.5 text-xs text-muted-foreground">Node Types</div>
+        {(['math', 'string', 'logic', 'time', 'convert', 'other'] as const).map((category) => {
+          const defs = grouped[category];
+          if (defs.length === 0) {
+            return null;
+          }
 
-        return (
-          <section key={category} style={{ marginBottom: 14 }}>
-            <div
-              style={{
-                color: categoryColor[category],
-                fontWeight: 700,
-                fontSize: 12,
-                marginBottom: 6,
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-              }}
-            >
-              {categoryLabel[category]}
-            </div>
-            <div style={{ display: 'grid', gap: 6 }}>
-              {defs.map((def) => (
-                <div
-                  key={def.type_name}
-                  draggable
-                  onDragStart={(event) => handleDragStart(event, def.type_name)}
-                  style={{
-                    border: '1px solid #2d3748',
-                    borderLeft: `4px solid ${categoryColor[category]}`,
-                    borderRadius: 6,
-                    padding: '8px 10px',
-                    fontSize: 12,
-                    background: '#0f172a',
-                    color: '#e5e7eb',
-                    cursor: 'grab',
-                    userSelect: 'none',
-                  }}
-                  title={def.type_name}
-                >
-                  {def.type_name}
-                </div>
-              ))}
-            </div>
-          </section>
-        );
-      })}
-    </aside>
+          return (
+            <section key={category} className="mb-3.5">
+              <div className={cn('text-xs font-bold uppercase tracking-wide mb-1.5', categoryText[category])}>
+                {categoryLabel[category]}
+              </div>
+              <div className="grid gap-1.5">
+                {defs.map((def) => (
+                  <div
+                    key={def.type_name}
+                    draggable
+                    onDragStart={(event) => handleDragStart(event, def.type_name)}
+                    className={cn(
+                      'rounded-md border border-border border-l-4 px-2.5 py-2 text-xs',
+                      'bg-card text-foreground cursor-grab select-none',
+                      'hover:bg-accent transition-colors',
+                      categoryBorderLeft[category],
+                    )}
+                    title={def.type_name}
+                  >
+                    {def.type_name}
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </ScrollArea>
   );
 }

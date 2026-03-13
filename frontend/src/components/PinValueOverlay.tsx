@@ -1,5 +1,6 @@
 import type { PinId, PinValue } from '../types';
 import { usePinStore } from '../stores/pinStore';
+import { Badge } from '@/components/ui/badge';
 
 interface PinValueOverlayProps {
   pinId: PinId;
@@ -43,21 +44,8 @@ export function PinValueOverlay({ pinId }: PinValueOverlayProps) {
   }
 
   return (
-    <span
-      style={{
-        marginLeft: 8,
-        padding: '1px 6px',
-        borderRadius: 999,
-        background: '#111827',
-        border: '1px solid #374151',
-        color: '#c7d2fe',
-        fontSize: 10,
-        lineHeight: 1.6,
-        whiteSpace: 'nowrap',
-      }}
-      title={formatPinValue(value)}
-    >
+    <Badge variant="outline" className="ml-2 text-[10px] leading-relaxed font-mono whitespace-nowrap" title={formatPinValue(value)}>
       {formatPinValue(value)}
-    </span>
+    </Badge>
   );
 }

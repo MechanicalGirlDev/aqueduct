@@ -1,15 +1,8 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { PinValueOverlay } from './PinValueOverlay';
-import { toRuntimePinId, type AqueductNode, type NodeCategory } from '../stores/graphStore';
-
-const categoryColors: Record<NodeCategory, string> = {
-  math: '#2b6cb0',
-  string: '#2f855a',
-  logic: '#b7791f',
-  time: '#6b46c1',
-  convert: '#c05621',
-  other: '#4a5568',
-};
+import { toRuntimePinId, type AqueductNode } from '../stores/graphStore';
+import { cn } from '@/lib/utils';
+import { categoryBg } from '@/lib/category-colors';
 
 export function CustomNode({ data, selected }: NodeProps<AqueductNode>) {
   const inputs = data.nodeDef?.inputs ?? [];
@@ -17,56 +10,38 @@ export function CustomNode({ data, selected }: NodeProps<AqueductNode>) {
 
   return (
     <div
-      style={{
-        minWidth: 230,
-        borderRadius: 10,
-        border: selected ? '1px solid #fbbf24' : '1px solid #2d3748',
-        boxShadow: selected ? '0 0 0 2px rgba(251, 191, 36, 0.25)' : '0 8px 18px rgba(0, 0, 0, 0.25)',
-        overflow: 'hidden',
-        background: '#0f172a',
-        color: '#e2e8f0',
-      }}
+      className={cn(
+        'min-w-[230px] rounded-lg overflow-hidden bg-card text-card-foreground',
+        'shadow-md border',
+        selected
+          ? 'border-primary ring-2 ring-primary/25'
+          : 'border-border',
+      )}
     >
       <div
-        style={{
-          background: categoryColors[data.category],
-          fontWeight: 700,
-          fontSize: 12,
-          letterSpacing: 0.4,
-          textTransform: 'uppercase',
-          padding: '8px 10px',
-        }}
+        className={cn(
+          'px-2.5 py-2 text-xs font-bold uppercase tracking-wide text-white',
+          categoryBg[data.category],
+        )}
       >
         {data.typeName}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: 10 }}>
+      <div className="grid grid-cols-2 gap-3 p-2.5">
         <div>
           {inputs.length === 0 ? (
-            <div style={{ fontSize: 11, color: '#718096' }}>No inputs</div>
+            <div className="text-[11px] text-muted-foreground">No inputs</div>
           ) : (
             inputs.map((pin) => (
               <div
                 key={`in-${pin.id}`}
-                style={{
-                  position: 'relative',
-                  fontSize: 11,
-                  padding: '4px 0 4px 14px',
-                  color: '#a0aec0',
-                }}
+                className="relative text-[11px] py-1 pl-3.5 text-muted-foreground"
               >
                 <Handle
                   type="target"
                   id={pin.id}
                   position={Position.Left}
-                  style={{
-                    width: 8,
-                    height: 8,
-                    background: '#cbd5e0',
-                    border: '1px solid #4a5568',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                  }}
+                  className="!w-2 !h-2 !bg-muted-foreground !border !border-border"
                 />
                 {pin.name}
               </div>
@@ -76,20 +51,12 @@ export function CustomNode({ data, selected }: NodeProps<AqueductNode>) {
 
         <div>
           {outputs.length === 0 ? (
-            <div style={{ fontSize: 11, color: '#718096', textAlign: 'right' }}>No outputs</div>
+            <div className="text-[11px] text-muted-foreground text-right">No outputs</div>
           ) : (
             outputs.map((pin) => (
               <div
                 key={`out-${pin.id}`}
-                style={{
-                  position: 'relative',
-                  fontSize: 11,
-                  padding: '4px 14px 4px 0',
-                  color: '#a0aec0',
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                }}
+                className="relative text-[11px] py-1 pr-3.5 text-muted-foreground flex justify-end items-center"
               >
                 <span>{pin.name}</span>
                 <PinValueOverlay pinId={toRuntimePinId(data.nodeId, pin.id)} />
@@ -97,14 +64,7 @@ export function CustomNode({ data, selected }: NodeProps<AqueductNode>) {
                   type="source"
                   id={pin.id}
                   position={Position.Right}
-                  style={{
-                    width: 8,
-                    height: 8,
-                    background: '#cbd5e0',
-                    border: '1px solid #4a5568',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                  }}
+                  className="!w-2 !h-2 !bg-muted-foreground !border !border-border"
                 />
               </div>
             ))
